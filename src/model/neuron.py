@@ -1,17 +1,14 @@
-
+import numpy as np
+from function import activation_fn
 
 class Neuron():
-    def __init__(self, activation_fn, is_input_neuron, bias):
-        self.activation_fn = activation_fn
-        self.prev_neurons = []
-        self.next_neurons = []
-        self.is_input_neuron = is_input_neuron
+    def __init__(self, index):
+        self.index = index
 
         self.local_derivatives = []
-        self.combined_value = None
-        self.bias = bias
 
-    def
+    def reset_data(self):
+        raise NotImplementedError
 
     def calc_local_derivatives(self):
         '''
@@ -19,14 +16,10 @@ class Neuron():
         :return:
         '''
 
-    def apply_activation_fn(self):
-        '''
-        Apply the activation function to `self.combined_value` and return the answer
-        :return:
-        '''
+        self.local_derivatives = [1, 2, 3]
 
-        return self.activation_fn(self.combined_value)
+    def fire(self, next_index):
+        raise NotImplementedError
 
-    def fire(self, weight):
-        return weight
+
 

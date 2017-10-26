@@ -1,17 +1,25 @@
 import numpy as np
 from .neuron import Neuron
+from .bias_neuron import BiasNeuron
+from .hidden_neuron import HiddenNeuron
+from .input_neuron import InputNeuron
+from .output_neuron import OutputNeuron
+from .weighted_neuron import WeightedNeuron
 from function.activation_fn import *
 
 class Network():
 
-    def __init__(self):
+    def __init__(self, train_d, train_l, test_d, test_l):
         '''
         Initialize stuff
         '''
         self.layers = []
-        self.network_shape = []
+        self.shape = []
+        self.train_d = train_d
+        self.train_l = train_l
+        self.input_vector = None
 
-    def addLayer(self, neuron_count, bias):
+    def addLayer(self, neuron_count, activation_fn, is_output=False, is_input=False):
         '''
         This will add a fully-connected layer.py to the network with `neuron_count` neurons
 
@@ -19,53 +27,71 @@ class Network():
         :param bias:
         :return:
         '''
+        self.layers.append(self.create_layer(neuron_count, activation_fn, is_output, is_input))
 
-        self.layers.append(self.create_layer(neuron_count, 5, bias, activation_fn=relu))
-
-    def create_layer(self, neuron_count, input_dim, bias, activation_fn):
-        self.network_shape.append(neuron_count)
+    def create_layer(self, neuron_count, activation_fn, is_output, is_input):
+        self.shape.append(neuron_count)
         neurons = []
-        weights = np.random.rand(input_dim, neuron_count)
-        is_input_layer = len(self.layers) == 0
 
-        for _ in neuron_count:
-            neuron = Neuron(activation_fn, is_input_layer, bias)
-            if(len(self.layers) == 0):
-                neuron.is_input_neuron = True
-            else:
-                neuron.is_input_neuron = False
+        if not is_output and not is_input:
+            bias_neuron = BiasNeuron(self, 1)
+            neurons.append(bias_neuron)
+
+        if(activation_fn == 'relu'):
+            act_fn = relu
+        elif(activation_fn == 'softmax'):
+            act_fn = None
+
+        for neuron_index in range(neuron_count):
+            if is_input:
+                neuron = InputNeuron(neuron_index, self)
+            elif is_output:
+                neuron = OutputNeuron(neuron_index)
                 prev_layer = self.layers[-1]
-                for n in prev_layer[1]:
+                for n in prev_layer:
                     neuron.prev_neurons.append(n)
-                    n.next_neurons.append(self)
+            else:
+                neuron = HiddenNeuron(activation_fn,
+                                neuron_index)
+                prev_layer = self.layers[-1]
+                for n in prev_layer:
+                    neuron.prev_neurons.append(n)
 
             neurons.append(neuron)
 
-        return (weights, neurons)
+        return neurons
 
-    def run(self):
+    def set_up_weights(self):
+        for i, layer in enumerate(self.layers):
+            if i == 0: # Input layer - no weights
+                continue
 
-        return run_rec(len(self.layers)-1)
+            for n in layer:
+                if i == len(self.layers) - 1: # Output layer
+                    weights = np.random.rand(1, len(self.layers[i - 1]))
+                else: # Hidden layer
+                    weights = np.random.rand(len(self.layers[i+1]), len(self.layers[i-1]))
 
-    def run_rec(self, layer_num):
-        if layer_num == 0:
-            return foo
-        elif layer_num == len(self.layers):
-            
+                n.weights = weights
 
-        layer = self.layers[layer_num]
+    def clean_values(self):
+        for i, layer in enumerate(self.layers):
+            for neuron in layer:
+                neuron.reset_input()
 
-        return run_rec(layer_num-1)
+    def train(self):
+        self.set_up_weights()
+        for sample, label in zip(self.train_d, self.train_l):
+            outputs = []
+            self.input_vector = sample
+            for i, n in enumerate(self.layers[-1]):
+                outputs.append(n.fire(0))
 
+            print(outputs)
+            softmax_result = softmax(np.array(outputs))
+            print(softmax_result)
+            print("\n")
 
-class Layer()
-    def __init__(self, weights):
-        self.weights = weights
-        self.neurons = []
+            self.clean_values()
 
-    def add_neuron(self, neuron):
-        self.neurons.append(neuron)
-
-    def run_layer(self):
-        output = []
-        for n in self.neurons:
+            # Backprop
