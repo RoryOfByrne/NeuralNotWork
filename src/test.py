@@ -8,7 +8,8 @@ n = network.Network(training_data,
                     training_labels, None, None)
 
 n.addLayer(2, 'relu', is_input=True)
-n.addLayer(5, 'relu')
+n.addLayer(566, 'relu')
+n.addLayer(14, 'relu')
 n.addLayer(3, 'softmax', is_output=True)
 
 n.train()
