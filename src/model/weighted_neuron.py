@@ -1,7 +1,7 @@
 from .neuron import Neuron
 
 class WeightedNeuron(Neuron):
-    def __init__(self, index):
-        Neuron.__init__(self, index)
+    def __init__(self, weights):
+        Neuron.__init__(self)
         self.input = None
-        self.weights = None
+        self.weights = weights

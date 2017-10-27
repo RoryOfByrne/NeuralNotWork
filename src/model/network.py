@@ -27,14 +27,16 @@ class Network():
         :param bias:
         :return:
         '''
-        self.layers.append(self.create_layer(neuron_count, activation_fn, is_output, is_input))
+        layer = self.create_layer(neuron_count, activation_fn, is_output, is_input)
+        self.layers.append(layer)
+        self.shape.append(len(self.create_layer(neuron_count, activation_fn, is_output, is_input)))
 
     def create_layer(self, neuron_count, activation_fn, is_output, is_input):
-        self.shape.append(neuron_count)
         neurons = []
 
         if not is_output and not is_input:
-            bias_neuron = BiasNeuron(self, 1)
+            weights = np.random.rand(self.shape[-1])
+            bias_neuron = BiasNeuron(weights)
             neurons.append(bias_neuron)
 
         if(activation_fn == 'relu'):
@@ -46,13 +48,16 @@ class Network():
             if is_input:
                 neuron = InputNeuron(neuron_index, self)
             elif is_output:
-                neuron = OutputNeuron(neuron_index)
+                weights = np.random.rand(self.shape[-1])
+                neuron = OutputNeuron(weights)
+
                 prev_layer = self.layers[-1]
                 for n in prev_layer:
                     neuron.prev_neurons.append(n)
             else:
-                neuron = HiddenNeuron(activation_fn,
-                                neuron_index)
+                weights = np.random.rand(self.shape[-1])
+                neuron = HiddenNeuron(activation_fn, weights)
+
                 prev_layer = self.layers[-1]
                 for n in prev_layer:
                     neuron.prev_neurons.append(n)
@@ -61,18 +66,15 @@ class Network():
 
         return neurons
 
-    def set_up_weights(self):
-        for i, layer in enumerate(self.layers):
-            if i == 0: # Input layer - no weights
-                continue
-
-            for n in layer:
-                if i == len(self.layers) - 1: # Output layer
-                    weights = np.random.rand(1, len(self.layers[i - 1]))
-                else: # Hidden layer
-                    weights = np.random.rand(len(self.layers[i+1]), len(self.layers[i-1]))
-
-                n.weights = weights
+    # def set_up_weights(self):
+    #     for i, layer in enumerate(self.layers):
+    #         if i == 0: # Input layer - no weights
+    #             continue
+    #
+    #         for n in layer:
+    #             weights = np.random.rand(1, len(self.layers[i - 1]))
+    #
+    #             n.weights = weights
 
     def clean_values(self):
         for i, layer in enumerate(self.layers):
@@ -80,12 +82,11 @@ class Network():
                 neuron.reset_input()
 
     def train(self):
-        self.set_up_weights()
         for sample, label in zip(self.train_d, self.train_l):
             outputs = []
             self.input_vector = sample
             for i, n in enumerate(self.layers[-1]):
-                outputs.append(n.fire(0))
+                outputs.append(n.fire())
 
             print(outputs)
             softmax_result = softmax(np.array(outputs))

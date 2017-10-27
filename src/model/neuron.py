@@ -2,9 +2,7 @@ import numpy as np
 from function import activation_fn
 
 class Neuron():
-    def __init__(self, index):
-        self.index = index
-
+    def __init__(self):
         self.local_derivatives = []
 
     def reset_data(self):
@@ -18,7 +16,7 @@ class Neuron():
 
         self.local_derivatives = [1, 2, 3]
 
-    def fire(self, next_index):
+    def fire(self):
         raise NotImplementedError
 
 

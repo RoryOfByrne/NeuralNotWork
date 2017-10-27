@@ -3,13 +3,12 @@ from function import activation_fn
 from .weighted_neuron import WeightedNeuron
 
 class HiddenNeuron(WeightedNeuron):
-    def __init__(self, activation_fn_name, index):
-        WeightedNeuron.__init__(self, index)
+    def __init__(self, activation_fn_name, weights):
+        WeightedNeuron.__init__(self, weights)
 
         self.activation_fn = activation_fn.get_fn(activation_fn_name)
         self.prev_neurons = []
 
-        self.weights = None
         self.input = np.array([])
 
     def calc_local_derivatives(self):
@@ -31,16 +30,15 @@ class HiddenNeuron(WeightedNeuron):
     def reset_input(self):
         self.input = np.array([])
 
-    def fire(self, next_index):
+    def fire(self):
         if (self.input.size == 0):
             synaptic_input = []
             for n in self.prev_neurons:
-                synaptic_input.append(n.fire(self.index))
+                synaptic_input.append(n.fire())
             self.input = np.array(synaptic_input)
 
         # We use the rows of the weight matrix, not cols
-        local_weights = self.weights[next_index]
-        signal = np.dot(local_weights, self.input)
+        signal = np.dot(self.weights, self.input)
         return self.apply_activation_fn(signal)
 
 
