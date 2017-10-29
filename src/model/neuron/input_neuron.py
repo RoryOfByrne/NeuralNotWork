@@ -1,4 +1,4 @@
-from .neuron import Neuron
+from model.neuron import Neuron
 
 class InputNeuron(Neuron):
     def __init__(self, index, network):

@@ -5,6 +5,10 @@ def relu(x):
         return x
     return 0
 
+def relu_vec(x):
+    vfunc = np.vectorize(lambda o: max(0, o))
+    return vfunc(x)
+
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
@@ -15,3 +19,5 @@ def get_fn(name):
         return relu
     elif(name == 'softmax'):
         return softmax
+    elif(name == 'relu_vec'):
+        return relu_vec
