@@ -48,9 +48,8 @@ class Network():
         return layer
 
     def clean_values(self):
-        for i, layer in enumerate(self.layers):
-            for neuron in layer:
-                neuron.reset_input()
+        for layer in self.layers:
+            layer.reset_inputs()
 
     def train(self):
         for sample, label in zip(self.train_d, self.train_l):
