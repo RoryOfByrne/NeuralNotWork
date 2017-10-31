@@ -1,12 +1,13 @@
 from function.activation_fn import *
 from .layer.input_layer import InputLayer
 from .layer.weighted_layer import WeightedLayer
+from util import *
 from pprint import pprint
 
 
 class Network():
 
-    def __init__(self, train_d, train_l, test_d, test_l):
+    def __init__(self, train_d, train_l, test_d, test_l, learning_rate=0.5):
         '''
         Initialize stuff
         '''
@@ -42,7 +43,9 @@ class Network():
                 weights = np.random.rand(neuron_count, self.shape[-1] + 1)
             else:
                 weights = np.random.rand(neuron_count, self.shape[-1])
-            pprint(weights)
+
+            print("Vector for Layer #%i" % (len(self.shape) + 1))
+            showMatrix(weights, 3)
             layer = WeightedLayer(neuron_count, weights, activation_fn, self.layers[-1], hidden)
 
         return layer
@@ -51,13 +54,21 @@ class Network():
         for layer in self.layers:
             layer.reset_inputs()
 
+    def backprop(self, outputs):
+        for i, l in enumerate(reversed(self.layers)):
+            if(i == len(self.layers) - 1):
+                erro
+
     def train(self):
         for sample, label in zip(self.train_d, self.train_l):
             self.input_vector = sample
             outputs = self.layers[-1].compute()
 
+            print("\n---     OUTPUT     ---")
             pprint(outputs)
 
-            # self.clean_values()
+            self.backprop(outputs)
+
+            self.clean_values()
 
             # Backprop

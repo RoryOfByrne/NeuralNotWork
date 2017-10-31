@@ -4,11 +4,12 @@ import numpy as np
 training_data = np.array([[13, 3]])
 training_labels = np.array([[0, 1, 0]])
 
-n = network.Network(training_data,
+n_sig = network.Network(training_data,
                     training_labels, None, None)
 
-n.addLayer(2, 'relu_vec')
-n.addLayer(5, 'relu_vec')
-n.addLayer(3, 'softmax', is_output=True)
+n_sig.addLayer(2, 'sigmoid_vec')
+n_sig.addLayer(5, 'sigmoid_vec')
+n_sig.addLayer(3, 'softmax', is_output=True)
 
-n.train()
+
+n_sig.train()

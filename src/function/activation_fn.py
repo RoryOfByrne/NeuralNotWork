@@ -6,8 +6,18 @@ def relu(x):
     return 0
 
 def relu_vec(x):
-    vfunc = np.vectorize(lambda o: max(0, o))
+    vfunc = np.vectorize(lambda o: relu(o))
     return vfunc(x)
+
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
+
+def sigmoid_vec(x):
+    vfunc = np.vectorize(lambda o: sigmoid(o))
+    return vfunc(x)
+
+def sigmoid_derivative(x):
+    return x * (1.0 - x)
 
 def softmax(x):
     e_x = np.exp(x - np.max(x))
@@ -21,3 +31,9 @@ def get_fn(name):
         return softmax
     elif(name == 'relu_vec'):
         return relu_vec
+    elif(name == 'sigmoid'):
+        return sigmoid
+    elif(name == 'sigmoid_vec'):
+        return sigmoid_vec
+    elif(name == 'sigmoid_derivative'):
+        return sigmoid_derivative
