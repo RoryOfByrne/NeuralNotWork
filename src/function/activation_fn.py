@@ -1,4 +1,6 @@
 import numpy as np
+from .activations.sigmoid import Sigmoid
+from .activations.linear import Linear
 
 def relu(x):
     if x > 0:
@@ -32,7 +34,11 @@ def get_fn(name):
     elif(name == 'relu_vec'):
         return relu_vec
     elif(name == 'sigmoid'):
-        return sigmoid
+        act_fn = Sigmoid
+        return act_fn()
+    elif(name == 'linear'):
+        act_fn = Linear
+        return act_fn()
     elif(name == 'sigmoid_vec'):
         return sigmoid_vec
     elif(name == 'sigmoid_derivative'):
