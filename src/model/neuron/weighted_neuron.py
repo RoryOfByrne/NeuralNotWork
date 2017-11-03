@@ -1,4 +1,4 @@
-from .neuron import Neuron
+from model.neuron import Neuron
 
 class WeightedNeuron(Neuron):
     def __init__(self, weights):

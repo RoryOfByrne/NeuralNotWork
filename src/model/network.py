@@ -1,15 +1,15 @@
-import numpy as np
-from .neuron import Neuron
-from .bias_neuron import BiasNeuron
-from .hidden_neuron import HiddenNeuron
-from .input_neuron import InputNeuron
-from .output_neuron import OutputNeuron
-from .weighted_neuron import WeightedNeuron
 from function.activation_fn import *
+from function.cost_fn import *
+from function.losses import mse as mse
+from .layer.input_layer import InputLayer
+from .layer.weighted_layer import WeightedLayer
+from util import *
+from pprint import pprint
+
 
 class Network():
 
-    def __init__(self, train_d, train_l, test_d, test_l):
+    def __init__(self, train_d, train_l, test_d, test_l, learning_rate=0.5):
         '''
         Initialize stuff
         '''
@@ -18,8 +18,9 @@ class Network():
         self.train_d = train_d
         self.train_l = train_l
         self.input_vector = None
+        self.learning_rate = learning_rate
 
-    def addLayer(self, neuron_count, activation_fn, is_output=False, is_input=False):
+    def addLayer(self, neuron_count, activation_fn, is_output=False):
         '''
         This will add a fully-connected layer.py to the network with `neuron_count` neurons
 
@@ -27,72 +28,73 @@ class Network():
         :param bias:
         :return:
         '''
-        layer = self.create_layer(neuron_count, activation_fn, is_output, is_input)
+        layer = self.create_layer(neuron_count, activation_fn, is_output)
         self.layers.append(layer)
-        self.shape.append(len(self.create_layer(neuron_count, activation_fn, is_output, is_input)))
+        self.shape.append(layer.neuron_count)
 
-    def create_layer(self, neuron_count, activation_fn, is_output, is_input):
-        neurons = []
+    def create_layer(self, neuron_count, activation_fn=None, is_output=False):
+        is_input = (len(self.layers) == 0)
 
-        if not is_output and not is_input:
-            weights = np.random.rand(self.shape[-1])
-            bias_neuron = BiasNeuron(weights)
-            neurons.append(bias_neuron)
 
-        if(activation_fn == 'relu'):
-            act_fn = relu
-        elif(activation_fn == 'softmax'):
-            act_fn = None
+        if(is_input):
+            layer = InputLayer(neuron_count, self)
+        else:
+            weights = np.random.rand(neuron_count, self.shape[-1])
 
-        for neuron_index in range(neuron_count):
-            if is_input:
-                neuron = InputNeuron(neuron_index, self)
-            elif is_output:
-                weights = np.random.rand(self.shape[-1])
-                neuron = OutputNeuron(weights)
+            layer = WeightedLayer(neuron_count, weights, activation_fn, self.layers[-1])
 
-                prev_layer = self.layers[-1]
-                for n in prev_layer:
-                    neuron.prev_neurons.append(n)
-            else:
-                weights = np.random.rand(self.shape[-1])
-                neuron = HiddenNeuron(activation_fn, weights)
+        return layer
 
-                prev_layer = self.layers[-1]
-                for n in prev_layer:
-                    neuron.prev_neurons.append(n)
-
-            neurons.append(neuron)
-
-        return neurons
-
-    # def set_up_weights(self):
-    #     for i, layer in enumerate(self.layers):
-    #         if i == 0: # Input layer - no weights
-    #             continue
-    #
-    #         for n in layer:
-    #             weights = np.random.rand(1, len(self.layers[i - 1]))
-    #
-    #             n.weights = weights
+    def add_bias(self, layer):
+        1
 
     def clean_values(self):
-        for i, layer in enumerate(self.layers):
-            for neuron in layer:
-                neuron.reset_input()
+        for layer in self.layers:
+            layer.reset_inputs()
+
+    def backprop(self, loss_fn, output, label):
+        prop_error = np.array(loss_fn.vector_wise_derivative(output, label))
+        prop_error.reshape(prop_error.shape[0], 1)
+        # 0 (first loop) is the last item
+        for i, l in enumerate(reversed(self.layers)):
+            if(i == len(self.layers)-1):
+                continue
+            if(i == 0): # Output Layer
+                # np array(prop_error.size, prev_layer.real_inputs.size)
+                l.incoming_deriv = prop_error
+
+                l.local_derivatives()
+                input_ders = l.inputs_derivs
+                prop_error = input_ders
+            else:
+                l.incoming_deriv = prop_error
+                l.local_derivatives()
+
+                prop_error = l.inputs_derivs
+
+        for i, l in enumerate(self.layers):
+            if i == 0:
+                continue
+            l.update_weights(0.05)
 
     def train(self):
-        for sample, label in zip(self.train_d, self.train_l):
-            outputs = []
-            self.input_vector = sample
-            for i, n in enumerate(self.layers[-1]):
-                outputs.append(n.fire())
+        for e in range(10):
+            print("EPOCH %s" % e)
+            epoch_loss = 0.0
+            sample_count = len(self.train_d)
+            for sample, label in zip(self.train_d, self.train_l):
+                self.input_vector = sample
+                output = self.layers[-1].compute()
 
-            print(outputs)
-            softmax_result = softmax(np.array(outputs))
-            print(softmax_result)
+                # print("\nin: %s\nout: %s\nguess: %s" % (sample, label, output))
+
+                loss_fn = mse.MSE()
+                loss = loss_fn.element_wise(output, label)
+                epoch_loss += loss
+                # print("ERROR: %s" % loss)
+
+                self.backprop(loss_fn, output, label)
+
+                self.clean_values()
+            print("Average loss: %s" % (epoch_loss/sample_count))
             print("\n")
-
-            self.clean_values()
-
-            # Backprop
