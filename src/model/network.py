@@ -1,10 +1,7 @@
-from function.activation_fn import *
-from function.cost_fn import *
 from function.losses import mse as mse
 from .layer.input_layer import InputLayer
 from .layer.weighted_layer import WeightedLayer
-from util import *
-from pprint import pprint
+import numpy as np
 
 
 class Network():
