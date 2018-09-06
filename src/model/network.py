@@ -19,17 +19,39 @@ class Network():
 
     def addLayer(self, neuron_count, activation_fn, is_output=False):
         '''
-        This will add a fully-connected layer.py to the network with `neuron_count` neurons
+        This will add a fully-connected `Layer` to the network with `neuron_count` neurons
 
         :param neuron_count:
         :param bias:
         :return:
         '''
-        layer = self.create_layer(neuron_count, activation_fn, is_output)
+        layer = self._create_layer(neuron_count, activation_fn, is_output)
         self.layers.append(layer)
         self.shape.append(layer.neuron_count)
 
-    def create_layer(self, neuron_count, activation_fn=None, is_output=False):
+    def train(self):
+        for e in range(10):
+            print("EPOCH %s" % e)
+            epoch_loss = 0.0
+            sample_count = len(self.train_d)
+            for sample, label in zip(self.train_d, self.train_l):
+                self.input_vector = sample
+                output = self.layers[-1].compute()
+
+                # print("\nin: %s\nout: %s\nguess: %s" % (sample, label, output))
+
+                loss_fn = mse.MSE()
+                loss = loss_fn.element_wise(output, label)
+                epoch_loss += loss
+                # print("ERROR: %s" % loss)
+
+                self._backprop(loss_fn, output, label)
+
+                self._clean_values()
+            print("Average loss: %s" % (epoch_loss/sample_count))
+            print("\n")
+
+    def _create_layer(self, neuron_count, activation_fn=None, is_output=False):
         is_input = (len(self.layers) == 0)
 
 
@@ -42,14 +64,14 @@ class Network():
 
         return layer
 
-    def add_bias(self, layer):
-        1
+    def _add_bias(self, layer):
+        pass
 
-    def clean_values(self):
+    def _clean_values(self):
         for layer in self.layers:
             layer.reset_inputs()
 
-    def backprop(self, loss_fn, output, label):
+    def _backprop(self, loss_fn, output, label):
         prop_error = np.array(loss_fn.vector_wise_derivative(output, label))
         prop_error.reshape(prop_error.shape[0], 1)
         # 0 (first loop) is the last item
@@ -73,25 +95,3 @@ class Network():
             if i == 0:
                 continue
             l.update_weights(0.05)
-
-    def train(self):
-        for e in range(10):
-            print("EPOCH %s" % e)
-            epoch_loss = 0.0
-            sample_count = len(self.train_d)
-            for sample, label in zip(self.train_d, self.train_l):
-                self.input_vector = sample
-                output = self.layers[-1].compute()
-
-                # print("\nin: %s\nout: %s\nguess: %s" % (sample, label, output))
-
-                loss_fn = mse.MSE()
-                loss = loss_fn.element_wise(output, label)
-                epoch_loss += loss
-                # print("ERROR: %s" % loss)
-
-                self.backprop(loss_fn, output, label)
-
-                self.clean_values()
-            print("Average loss: %s" % (epoch_loss/sample_count))
-            print("\n")
